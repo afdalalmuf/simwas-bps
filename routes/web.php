@@ -97,6 +97,7 @@ use App\Http\Controllers\InspekturRealisasiJamKerjaController;
 use App\Http\Controllers\MasterRekeningController;
 use App\Http\Controllers\SpjVerificationController;
 use App\Http\Controllers\UserGuideController;
+use App\Http\Controllers\ArsipController;
 use App\Models\RencanaDiklat;
 use App\Models\SpjVerification;
 
@@ -522,7 +523,7 @@ Route::group(['middleware' => ['auth', 'role:status']], function () {
         Route::get('rekening/list', [MasterRekeningController::class, 'list']);
         Route::get('spj-diklat/verification-list/{id}', [SpjVerificationController::class, 'getVerificationsBySpjDiklatId']);
         Route::get('spj-diklat/download-nominatif/{id}', [SpjDiklatController::class, 'generateNominatif'])
-                ->name('spj-diklat.download-nominatif');
+            ->name('spj-diklat.download-nominatif');
     });
 
     /**
@@ -613,6 +614,21 @@ Route::group(['middleware' => ['auth', 'role:status']], function () {
             Route::get('tim/norma-hasil/viewLaporan/{id}/{jenis}', [TimNormaHasilController::class, 'viewLaporan']);
             Route::get('nh/laporan/export', [ArsiparisNormaHasilController::class, 'export_laporan']);
             Route::get('nh/dokumen/export', [ArsiparisNormaHasilController::class, 'export_dokumen']);
+            Route::prefix('arsiparis')->name('arsiparis.')->group(function () {
+                Route::resource('kelola-arsip', ArsipController::class);
+            });
+            Route::put(
+                'kelola-arsip/{id}/nonaktif',
+                [ArsipController::class, 'nonaktifkan']
+            )->name('kelola-arsip.nonaktif');
+            Route::get(
+                'arsip/{id}/detail',
+                [ArsipController::class, 'detail']
+            )->name('arsip.detail');
+            Route::delete(
+                'arsip/dokumen/{id}',
+                [ArsipController::class, 'hapusDokumen']
+            )->name('arsip.dokumen.hapus');
         });
 
 
