@@ -1,0 +1,327 @@
+/**
+ *
+ * You can write your CSS code here, DO NOT touch the default JavaScript file
+ * because it will make it harder for you to update.
+ *
+ */
+
+/*# sourceMappingURL=custom.css.map */
+
+/* Loader */
+.center-body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100vh;
+    background-color: rgba(158, 220, 255, 0.185);
+}
+
+.loader-circle-75 {
+    position: relative;
+    width: 70px;
+    height: 70px;
+    display: inline-block;
+}
+
+.loader-circle-75:before {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-width: 3px 3px;
+    border-style: solid;
+    border-color: #0085dd rgba(0, 133, 221, 0.3);
+    border-radius: 50%;
+    box-sizing: border-box;
+    animation: loader-circle-75-spin 3s infinite;
+}
+
+.loader-circle-75:after {
+    content: "";
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    top: 50%;
+    left: 50%;
+    background-color: #ff9100;
+    border-radius: 50%;
+    box-sizing: border-box;
+    animation: loader-circle-75-pulse 6s infinite,
+        loader-circle-75-borderPulse 6s infinite;
+    transform: translate(-50%, -50%);
+}
+
+@keyframes loader-circle-75-spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    50% {
+        transform: rotate(360deg);
+    }
+
+    100% {
+        transform: rotate(1080deg);
+    }
+}
+
+@keyframes loader-circle-75-pulse {
+    0% {
+        background-color: rgba(0, 133, 221, 0.2);
+    }
+
+    13% {
+        background-color: rgba(0, 133, 221, 0.2);
+    }
+
+    15% {
+        background-color: rgba(255, 174, 0, 0.9);
+    }
+
+    28% {
+        background-color: rgba(255, 174, 0, 0.9);
+    }
+
+    30% {
+        background-color: rgba(0, 133, 221, 0.2);
+    }
+
+    43% {
+        background-color: rgba(0, 133, 221, 0.2);
+    }
+
+    45% {
+        background-color: rgba(255, 173, 119, 0.9);
+    }
+
+    70% {
+        background-color: rgba(255, 174, 0, 0.9);
+    }
+
+    74% {
+        background-color: rgba(0, 133, 221, 0.2);
+    }
+
+    100% {
+        background-color: rgba(255, 174, 0, 0.9);
+    }
+}
+
+@keyframes loader-circle-75-borderPulse {
+    0% {
+        box-shadow: 0 0 0 0 #fff, 0 0 0 1px rgba(0, 133, 221, 0.8);
+    }
+
+    40% {
+        box-shadow: 0 0 0 1px #fff, 0 0 0 2px rgba(0, 133, 221, 0.8);
+    }
+
+    80% {
+        box-shadow: 0 0 0 3px #fff, 0 0 1px 3px rgba(0, 133, 221, 0.8);
+    }
+}
+
+.form-one-line {
+    flex: 1;
+    display: flex !important;
+}
+
+.form-one-line input {
+    flex: 1 !important;
+}
+
+#calendar a {
+    color: #20232a !important;
+    font-weight: normal !important;
+}
+
+.fc-list-event-title,
+.fc-dayGridMonth-view .fc-event-title {
+    text-align: left;
+}
+
+.fc-event {
+    cursor: pointer;
+}
+
+.fc-list-table .fc-event {
+    cursor: default;
+}
+
+.popover {
+    z-index: 2000 !important;
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px !important;
+    max-width: 100%;
+    white-space: pre-wrap;
+}
+
+.popover h3 {
+    color: var(--secondary);
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.popover h4 {
+    color: var(--secondary);
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.popover-header {
+    /* content: "×"; */
+    /* position: absolute; */
+    text-align: right;
+    /* cursor: pointer; */
+    color: gray !important;
+}
+
+.popover-header i {
+    font-size: 18px;
+    margin-top: 0.4rem;
+    margin-left: 1rem;
+}
+
+::-webkit-scrollbar {
+    width: 9px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: rgba(155, 155, 155, 0.5);
+    border-radius: 20px;
+    border: transparent;
+}
+
+.fc .fc-timegrid-slot {
+    border-bottom: 0px;
+    height: 3em;
+}
+
+/* @media screen and (max-width:767px) { 
+    .fc-toolbar.fc-header-toolbar {
+        font-size: 60%
+    }
+} */
+
+/* @media screen and (max-width: 767px) {
+    .fc-toolbar.fc-header-toolbar {
+      flex-direction: column;
+      order: 2;
+    }
+    .fc-toolbar-chunk {
+      display: table-row;
+      text-align: center;
+      padding: 5px 0;
+    }
+} */
+
+.no-arrow::after {
+    display: none;
+}
+
+.fc-dayGridMonth-view .fc-daygrid-day:not(.fc-day-disabled):hover {
+    background-color: #ebf8fb;
+    cursor: pointer;
+    content: '+';
+    color: gray;
+}
+
+.current-time {
+    background-color: #ebf8fb;
+    color: gray;
+    position: relative;
+    cursor: pointer;
+    /* padding-right: 5px; */
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-right: 1px solid var(--fc-border-color);
+}
+
+.hovermonth {
+    position: absolute;
+    width: 100%;
+    top: 45%;
+    padding: 0;
+    height: 100%;
+    text-align: center;
+}
+
+/* .hovermonth p {
+    
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+} */
+
+.legend {
+    list-style: none;
+    text-align: center;
+    padding-left: 0;
+}
+
+.legend li {
+    margin-right: 10px;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.legend span {
+    border-radius: 3px;
+    /* width: 20px;
+    height: 15px;
+    margin: 2px; */
+    display: inline-block;
+    vertical-align: middle;
+    color: white !important;
+}
+
+.legend .jingga {
+    background-color: orange;
+}
+
+.legend .hijau {
+    background-color: green;
+}
+
+.legend .merah {
+    background-color: red;
+}
+
+.legend .hitam {
+    background-color: black;
+}
+
+.fc-excel-button {
+    background-color: var(--success) !important;
+    border-color: var(--success) !important;
+}
+
+.select2-container {
+    width: 100% !important;
+}
+
+.tour-icon-btn {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  font-size: 14px; /* ukuran ikon lebih kecil */
+  text-align: center;
+  line-height: 30px;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  padding: 0;
+  margin-left: 0.8rem;
+}
+
+.tour-icon-btn:hover {
+  background-color: #0056b3;
+}

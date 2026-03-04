@@ -1,0 +1,588 @@
+document.forms["myform"].reset();
+document.addEventListener("DOMContentLoaded", () => {
+    const today = new Date();
+    const month = today.getMonth() + 1; // getMonth() is zero-based, so we add 1 to get the correct month
+    const year = today.getFullYear();
+});
+
+var clockpicker = $(".clockpicker").clockpicker();
+
+$(".modal").on("scroll", function (e) {
+    clockpicker.clockpicker("hide");
+    $(".clockpicker").trigger("blur");
+});
+
+var calendarEl = $("#calendar")[0];
+var calendar = new FullCalendar.Calendar(calendarEl, {
+    locale: "id",
+    nowIndicator: true,
+    slotDuration: "01:00:00",
+    eventOverlap: false,
+    events: events,
+    selectOverlap: function (event) {
+        return this.calendar.currentData.currentViewType == "dayGridMonth";
+    },
+    headerToolbar: {
+        start: "prev,next today excel",
+        center: "title",
+        end: "dayGridMonth,timeGridWeek,timeGridDay,listMonth", // user can switch between the two
+    },
+    allDayContent: {
+        html: '<i class="fa-regular fa-clock"></i>',
+    },
+    buttonText: {
+        today: "Hari ini",
+        month: "Bulan",
+        week: "Minggu",
+        day: "Hari",
+        list: "List",
+        prev: "<", // ganti label prev
+        next: ">", // ganti label next
+    },
+    customButtons: {
+        excel: {
+            text: "Excel",
+            click: function () {
+                let bulan = moment(calendar.getDate()).format("MM");
+                let tahun = moment(calendar.getDate()).format("YYYY");
+                window.location.href = `/pegawai/aktivitas-harian/export/${bulan}/${tahun}`;
+            },
+        },
+    },
+    views: {
+        dayGridMonth: {
+            // name of view
+            eventTimeFormat: function (date) {
+                let eDate = date.start.array;
+                moment.locale("en");
+                if (eDate[4] === 0) return moment(eDate).format("ha");
+                else return moment(eDate).format("h.ma");
+            },
+        },
+        timeGrid: {
+            eventTimeFormat: {
+                hour: "2-digit",
+                minute: "2-digit",
+            },
+        },
+        list: {
+            eventTimeFormat: {
+                hour: "2-digit",
+                minute: "2-digit",
+            },
+            eventDidMount: function (info) {
+                info.el.querySelector(
+                    ".fc-list-event-title a"
+                ).innerHTML += ` <br><table class="table-borderless"><tbody>
+                        <tr><td class="pl-0 pb-0"><strong>Objek Pengawasan: </strong></td>
+                            <td class="pl-0 pb-0" style="white-space: pre-line;">${
+                                info.event.extendedProps.laporan_o_pengawasan
+                                    .objek_pengawasan.nama
+                            }
+                            </td>
+                        </tr>
+                        <tr><td class="pl-0 pb-0"><strong>Bulan Pelaporan: </strong></td>
+                            <td class="pl-0 pb-0" style="white-space: pre-line;">${Intl.DateTimeFormat(
+                                "id",
+                                { month: "long" }
+                            ).format(
+                                new Date(
+                                    info.event.extendedProps.laporan_o_pengawasan.month.toString()
+                                )
+                            )}
+                            </td>
+                        </tr>
+                        <tr><td class="pl-0 pt-2"><strong>Aktivitas: </strong></td>
+                            <td class="pl-0 pt-2" style="white-space: pre-line;">${
+                                info.event.extendedProps.aktivitas
+                            }</td>
+                        </tr></tbody></table>`;
+            },
+        },
+    },
+    viewDidMount: function (arg) {
+        if (arg.view.type == "listMonth") {
+            document.querySelector(".fc-excel-button").style.display =
+                "inline-block";
+        } else {
+            document.querySelector(".fc-excel-button").style.display = "none";
+        }
+    },
+    eventDidMount: function (info) {
+        moment.locale("id");
+        let startdate = moment(info.event.start);
+        let enddate = moment(info.event.end);
+        $(info.el).popover({
+            sanitize: false,
+            title:
+                '<i role="button" class="fas fa-edit edit-btn" data-toggle="modal" data-target="#modal-edit-aktivitas" data-id="' +
+                info.event.id +
+                '"></i>' +
+                '<i role="button" class="fas fa-trash delete-btn" data-id="' +
+                info.event.id +
+                '"></i> <button id="close" class="close ml-3">&times;</button>',
+            trigger: "click",
+            placement: "right",
+            html: true,
+            content:
+                "<h3>" +
+                info.event.title +
+                "</h3>" +
+                "<h4>Objek Pengawasan: " +
+                info.event.extendedProps.laporan_o_pengawasan.objek_pengawasan
+                    .nama +
+                "</h4>" +
+                "<h4>Bulan Pelaporan: " +
+                Intl.DateTimeFormat("id", { month: "long" }).format(
+                    new Date(
+                        info.event.extendedProps.laporan_o_pengawasan.month.toString()
+                    )
+                ) +
+                "</h4>" +
+                startdate.format("dddd, D MMMM YYYY • HH:mm - ") +
+                enddate.format("HH:mm") +
+                "<br><strong>Aktivitas:</strong><br>" +
+                info.event.extendedProps.aktivitas,
+        });
+        // }
+    },
+    selectable: true,
+    select: function (selectionInfo) {
+        $(".popover").popover("hide");
+        $("#error-id_pelaksana").text("");
+        $("#error-start").text("");
+        $("#error-end").text("");
+        $("#error-aktivitas").text("");
+
+        let start = moment(selectionInfo.start).format("HH:mm");
+        let end = moment(selectionInfo.end).format("HH:mm");
+        let startDate = moment(selectionInfo.start).format("YYYY-MM-DD");
+        let endDate = moment(selectionInfo.end).format("YYYY-MM-DD");
+        let selisih = Date.parse(endDate) - Date.parse(startDate);
+        let view = selectionInfo.view.type;
+
+        //tidak boleh memilih lebih dari sehari sekaligus
+        if (
+            (view != "dayGridMonth" && startDate != endDate) ||
+            (view == "dayGridMonth" && selisih != 86400000)
+        ) {
+            calendar.unselect();
+            return;
+        }
+
+        $("#modal-create-aktivitas").modal("show");
+        if (start != "00:00") {
+            $("#start").val(start);
+            $("#end").val(end);
+        }
+        $("#tgl").val(startDate);
+        $("#modal-create-aktivitas-label").html(
+            "Tambah Aktivitas: " + moment(selectionInfo.start).format("LL")
+        );
+    },
+    dateClick: function (info) {
+        if (calendar.view.type !== "dayGridMonth") return; // pastikan hanya bulan
+
+        $(".popover").popover("hide"); // Tutup semua popover (penting)
+        $("#error-id_pelaksana").text("");
+        $("#error-start").text("");
+        $("#error-end").text("");
+        $("#error-aktivitas").text("");
+
+        $("#tgl").val(info.dateStr);
+        $("#start").val("");
+        $("#end").val("");
+        $("#tugas").val("").trigger("change");
+        $("#objek").val("").trigger("change");
+        $("#laporan_opengawasan").val("").trigger("change");
+        $("#aktivitas").val("");
+        $("#modal-create-aktivitas-label").html(
+            "Tambah Aktivitas: " + moment(info.dateStr).format("LL")
+        );
+        $("#modal-create-aktivitas").modal("show");
+    },
+    datesSet: function (dateInfo) {
+        // tampilan hover sel untuk monthview
+        $(".fc-dayGridMonth-view .fc-daygrid-day-frame").on({
+            mouseenter: function () {
+                $(this).append("<div class='hovermonth'>+</div>");
+            },
+            mouseleave: function () {
+                $(".hovermonth").remove();
+            },
+        });
+    },
+});
+
+calendar.render();
+
+function reloadEvents() {
+    $.ajax({
+        url: "/pegawai/aktivitas-harian/fetch",
+        type: "GET",
+        success: function (data) {
+            calendar.removeAllEvents(); // Clear old events
+            calendar.addEventSource(data); // Load new events
+        },
+        error: function (err) {
+            console.error("AJAX error:", err);
+
+            let message = "Terjadi kesalahan pada server.";
+
+            if (err.responseJSON && err.responseJSON.message) {
+                message = err.responseJSON.message;
+            } else if (err.responseText) {
+                // Try to extract plain text message
+                message = err.responseText;
+            }
+
+            Swal.fire({
+                icon: "error",
+                title: "Oops!",
+                text: message,
+            });
+        },
+    });
+}
+
+//tutup popover event saat klik di luar atau buka modal
+$("html").on("mouseup", function (e) {
+    var l = $(e.target);
+    if (!l[0].classList || !l[0].classList.contains("popover")) {
+        $(".popover").each(function () {
+            $(this).popover("hide");
+        });
+    }
+});
+
+//update ukuran kalender saat ukuran sidebar berubah
+$(".nav-link").on("click", function () {
+    setTimeout(() => {
+        calendar.updateSize();
+    }, 400);
+});
+
+$(".fc-excel-button").addClass(
+    "btn btn-secondary buttons-excel buttons-html5 btn-success"
+);
+
+//tampilan sel waktu saat hover (week & day view)
+$(document).on(
+    {
+        mouseenter: function () {
+            let cellWidth = $("th.fc-col-header-cell").width();
+            let cellHeight = $(this).height();
+            let columnCount = $("th.fc-col-header-cell").children().length;
+
+            if (!$(this).html()) {
+                for (var i = 0; i < columnCount; i++) {
+                    $(this).append(
+                        '<td class="temp-cell" style="border:0px; height:' +
+                            (cellHeight - 1) +
+                            "px;width:" +
+                            (cellWidth + 3) +
+                            'px"></td>'
+                    );
+                }
+            }
+
+            $(this)
+                .children("td")
+                .each(function () {
+                    $(this)
+                        .on("mouseenter", function () {
+                            $(this).html(
+                                '<div class="current-time h-100">+</div>'
+                            );
+                        })
+                        .on("mouseleave", function () {
+                            $(this).html("");
+                        });
+                });
+        },
+        mouseleave: function () {
+            $(this).children(".temp-cell").remove();
+        },
+    },
+    "td.fc-timegrid-slot.fc-timegrid-slot-lane"
+);
+
+$(".fc-button-group").on("click", function (e) {
+    $(".temp-cell").remove();
+});
+
+$("#modal-create-aktivitas .close, #modal-create-aktivitas .btn-danger").on(
+    "click",
+    function (e) {
+        document.forms["myform"].reset();
+    }
+);
+
+$("#objek").prop("disabled", true);
+$("#laporan_opengawasan").prop("disabled", true);
+
+$("#tugas").on("change", function () {
+    let id_rencanakerja = $(this).val();
+    $.ajax({
+        url: `/pegawai/aktivitas-harian/search-objek/${id_rencanakerja}`,
+        type: "GET",
+        success: function (data) {
+            // if data not 0
+            if (data.data.length > 0) {
+                $("#laporan_opengawasan").empty();
+                $("#laporan_opengawasan").append(
+                    '<option value="" disabled selected>Pilih Bulan Pelaporan</option>'
+                );
+                $("#laporan_opengawasan").prop("disabled", true);
+                $("#objek").prop("disabled", false);
+                // fill option with data.data
+                $("#objek").empty();
+                $("#objek").append(
+                    '<option value="" disabled selected>Pilih Objek Pengawasan</option>'
+                );
+                $.each(data.data, function (key, value) {
+                    $("#objek").append(
+                        '<option value="' +
+                            value.id_opengawasan +
+                            '">' +
+                            value.nama +
+                            "</option>"
+                    );
+                });
+            } else {
+                $("#objek").prop("disabled", true);
+                $("#laporan_opengawasan").prop("disabled", true);
+            }
+        },
+        error: function (data) {},
+    });
+});
+
+$("#objek").on("change", function () {
+    let id_objek = $(this).val();
+    $.ajax({
+        url: `/pegawai/aktivitas-harian/search-bulan/${id_objek}`,
+        type: "GET",
+        success: function (data) {
+            // if data not 0
+            if (data.data.length > 0) {
+                $("#laporan_opengawasan").prop("disabled", false);
+                // fill option with data.data
+                $("#laporan_opengawasan").empty();
+                $("#laporan_opengawasan").append(
+                    '<option value="" disabled selected>Pilih Bulan Pelaporan</option>'
+                );
+                $.each(data.data, function (key, value) {
+                    $("#laporan_opengawasan").append(
+                        '<option value="' +
+                            value.id +
+                            '">' +
+                            Intl.DateTimeFormat("id", { month: "long" }).format(
+                                new Date(value.month.toString())
+                            ) +
+                            "</option>"
+                    );
+                });
+            } else {
+                $("#laporan_opengawasan").prop("disabled", true);
+            }
+        },
+        error: function (data) {},
+    });
+});
+
+$(".submit-btn").on("click", function (e) {
+    e.preventDefault();
+
+    $("#error-laporan_opengawasan").text("");
+    $("#error-start").text("");
+    $("#error-end").text("");
+    $("#error-aktivitas").text("");
+
+    let token = $("meta[name='csrf-token']").attr("content");
+    let tgl = $("#tgl").val();
+    let start = $("#start").val();
+    let end = $("#end").val();
+    let laporan_opengawasan = $("#laporan_opengawasan").val();
+    let aktivitas = $("#aktivitas").val();
+
+    $.ajax({
+        url: `/pegawai/aktivitas-harian`,
+        type: "POST",
+        cache: false,
+        data: {
+            _token: token,
+            tgl: tgl,
+            start: start,
+            end: end,
+            laporan_opengawasan: laporan_opengawasan,
+            aktivitas: aktivitas,
+        },
+        success: function (response) {
+            $("#modal-create-aktivitas").modal("hide");
+            Swal.fire({
+                icon: "success",
+                title: "Berhasil",
+                text: response.message,
+                timer: 2000,
+                showConfirmButton: false,
+            }).then(() => {
+                reloadEvents(); // 👈 refetch calendar data
+            });
+        },
+        error: function (error) {
+            let errorResponses = error.responseJSON;
+            let errors = Object.entries(errorResponses.errors);
+
+            errors.forEach(([key, value]) => {
+                let errorMessage = document.getElementById(`error-${key}`);
+                errorMessage.innerText = value.join("\n");
+            });
+        },
+    });
+});
+
+$(document).on("click", ".popover .edit-btn", function (e) {
+    e.preventDefault();
+    let dataId = $(this).attr("data-id");
+
+    $("#error-edit-start").text("");
+    $("#error-edit-end").text("");
+    $("#error-edit-aktivitas").text("");
+    $("#error-edit-tgl").text("");
+    $("#edit-laporan_opengawasan").empty();
+
+    $.ajax({
+        url: `/pegawai/aktivitas-harian/${dataId}`,
+        type: "GET",
+        cache: false,
+        success: function (response) {
+            document.forms["myeditform"].reset();
+            $("#edit-tugas").val(response.id_rencanakerja);
+            $("#edit-objek").append(
+                '<option value="' +
+                    response.data[0].laporan_o_pengawasan.id_objek_pengawasan +
+                    '">' +
+                    response.data[0].laporan_o_pengawasan.objek_pengawasan
+                        .nama +
+                    "</option>"
+            );
+            $("#edit-objek").val(
+                response.data[0].laporan_o_pengawasan.id_objek_pengawasan
+            );
+            $("#edit-laporan_opengawasan").append(
+                '<option value="' +
+                    response.data[0].laporan_opengawasan +
+                    '">' +
+                    Intl.DateTimeFormat("id", { month: "long" }).format(
+                        new Date(
+                            response.data[0].laporan_o_pengawasan.month.toString()
+                        )
+                    ) +
+                    "</option>"
+            );
+            $("#edit-laporan_opengawasan").val(
+                response.data[0].laporan_opengawasan
+            );
+            $("#edit-start").val(
+                moment(response.data[0].start).format("HH:mm")
+            );
+            $("#edit-end").val(moment(response.data[0].end).format("HH:mm"));
+            $("#edit-aktivitas").val(response.data[0].aktivitas);
+            $("#edit-tgl").val(
+                moment(response.data[0].start).format("YYYY-MM-DD")
+            );
+            $("#id").val(response.data[0].id);
+        },
+    });
+});
+
+$("#btn-edit-submit").on("click", function (e) {
+    e.preventDefault();
+
+    $("#error-edit-start").text("");
+    $("#error-edit-end").text("");
+    $("#error-edit-aktivitas").text("");
+    $("#error-edit-tgl").text("");
+
+    let token = $("meta[name='csrf-token']").attr("content");
+    let tgl = $("#edit-tgl").val();
+    let start = $("#edit-start").val();
+    let end = $("#edit-end").val();
+    let laporan_opengawasan = $("#edit-laporan_opengawasan").val();
+    let aktivitas = $("#edit-aktivitas").val();
+    let dataId = $("#id").val();
+
+    $.ajax({
+        url: `/pegawai/aktivitas-harian/${dataId}`,
+        type: "PUT",
+        cache: false,
+        data: {
+            _token: token,
+            tgl: tgl,
+            start: start,
+            end: end,
+            laporan_opengawasan: laporan_opengawasan,
+            aktivitas: aktivitas,
+        },
+        success: function (response) {
+            $("#modal-edit-aktivitas").modal("hide");
+            Swal.fire({
+                icon: "success",
+                title: "Berhasil",
+                text: response.message,
+                timer: 2000,
+                showConfirmButton: false,
+            }).then(() => {
+                reloadEvents(); // 👈 refetch calendar data
+            });
+        },
+        error: function (error) {
+            let errorResponses = error.responseJSON;
+            let errors = Object.entries(errorResponses.errors);
+
+            errors.forEach(([key, value]) => {
+                let errorMessage = document.getElementById(`error-edit-${key}`);
+                errorMessage.innerText = `${value}`;
+            });
+        },
+    });
+});
+
+$(document).on("click", ".popover .delete-btn", function (e) {
+    let dataId = $(this).attr("data-id");
+    let token = $("meta[name='csrf-token']").attr("content");
+
+    Swal.fire({
+        title: "Apakah Anda Yakin?",
+        text: "Data tidak dapat dipulihkan!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "var(--primary)",
+        cancelButtonColor: "var(--danger)",
+        confirmButtonText: "Hapus",
+        cancelButtonText: "Batal",
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: `/pegawai/aktivitas-harian/${dataId}`,
+                type: "DELETE",
+                cache: false,
+                data: {
+                    _token: token,
+                },
+                success: function (response) {
+                    Swal.fire({
+                        icon: "success",
+                        title: "Berhasil",
+                        text: response.message,
+                        timer: 2000,
+                        showConfirmButton: false,
+                    }).then(() => {
+                        reloadEvents(); // 👈 refetch calendar data
+                    });
+                },
+            });
+        }
+    });
+});
