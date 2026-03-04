@@ -98,6 +98,7 @@ use App\Http\Controllers\MasterRekeningController;
 use App\Http\Controllers\SpjVerificationController;
 use App\Http\Controllers\UserGuideController;
 use App\Http\Controllers\ArsipController;
+use App\Http\Controllers\CariArsipController;
 use App\Models\RencanaDiklat;
 use App\Models\SpjVerification;
 
@@ -524,6 +525,11 @@ Route::group(['middleware' => ['auth', 'role:status']], function () {
         Route::get('spj-diklat/verification-list/{id}', [SpjVerificationController::class, 'getVerificationsBySpjDiklatId']);
         Route::get('spj-diklat/download-nominatif/{id}', [SpjDiklatController::class, 'generateNominatif'])
             ->name('spj-diklat.download-nominatif');
+        Route::prefix('cari-arsip')->name('cari-arsip.')->group(function () {
+            Route::get('/',             [CariArsipController::class, 'index'])->name('index');
+            Route::post('/ajukan',      [CariArsipController::class, 'ajukan'])->name('ajukan');
+            Route::get('/{id}/dokumen', [CariArsipController::class, 'aksesDokumen'])->name('dokumen');
+        });
     });
 
     /**

@@ -185,6 +185,12 @@
                     <span>Kinerja Pegawai</span>
                 </a>
             </li>
+            <li class="{{ Request::is('pegawai/cari-arsip*') ? 'active' : '' }}">
+                <a class="nav-link" href="{{ route('pegawai.cari-arsip.index') }}">
+                    <i class="fas fa-search"></i>
+                    <span>Cari Arsip</span>
+                </a>
+            </li>
 
             <li class="menu-header">Pengembangan Kompetensi</li>
             <li class="{{ Request::is('pegawai/kompetensi*') ? 'active' : '' }}">
@@ -208,7 +214,7 @@
                     </a>
                 </li>
             @endif
-            
+
             <li class="menu-header">Panduan</li>
             <li class="{{ Request::is('pegawai/panduan*') ? 'active' : '' }}">
                 <a class="nav-link" href="/pegawai/panduan">
