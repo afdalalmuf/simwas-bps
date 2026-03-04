@@ -98,6 +98,7 @@ use App\Http\Controllers\MasterRekeningController;
 use App\Http\Controllers\SpjVerificationController;
 use App\Http\Controllers\UserGuideController;
 use App\Http\Controllers\ArsipController;
+use App\Http\Controllers\PeminjamanArsipController;
 use App\Http\Controllers\CariArsipController;
 use App\Models\RencanaDiklat;
 use App\Models\SpjVerification;
@@ -525,6 +526,8 @@ Route::group(['middleware' => ['auth', 'role:status']], function () {
         Route::get('spj-diklat/verification-list/{id}', [SpjVerificationController::class, 'getVerificationsBySpjDiklatId']);
         Route::get('spj-diklat/download-nominatif/{id}', [SpjDiklatController::class, 'generateNominatif'])
             ->name('spj-diklat.download-nominatif');
+
+        //Cari Arsip
         Route::prefix('cari-arsip')->name('cari-arsip.')->group(function () {
             Route::get('/',             [CariArsipController::class, 'index'])->name('index');
             Route::post('/ajukan',      [CariArsipController::class, 'ajukan'])->name('ajukan');
@@ -620,6 +623,7 @@ Route::group(['middleware' => ['auth', 'role:status']], function () {
             Route::get('tim/norma-hasil/viewLaporan/{id}/{jenis}', [TimNormaHasilController::class, 'viewLaporan']);
             Route::get('nh/laporan/export', [ArsiparisNormaHasilController::class, 'export_laporan']);
             Route::get('nh/dokumen/export', [ArsiparisNormaHasilController::class, 'export_dokumen']);
+            Route::resource('kelola-arsip', ArsipController::class);
             Route::prefix('arsiparis')->name('arsiparis.')->group(function () {
                 Route::resource('kelola-arsip', ArsipController::class);
             });
@@ -635,6 +639,12 @@ Route::group(['middleware' => ['auth', 'role:status']], function () {
                 'arsip/dokumen/{id}',
                 [ArsipController::class, 'hapusDokumen']
             )->name('arsip.dokumen.hapus');
+            Route::prefix('peminjaman-arsip')->name('peminjaman-arsip.')->group(function () {
+                Route::get('/',              [PeminjamanArsipController::class, 'index'])->name('index');
+                Route::get('/{id}/detail',   [PeminjamanArsipController::class, 'detail'])->name('detail');
+                Route::post('/{id}/setujui', [PeminjamanArsipController::class, 'setujui'])->name('setujui');
+                Route::post('/{id}/tolak',   [PeminjamanArsipController::class, 'tolak'])->name('tolak');
+            });
         });
 
 

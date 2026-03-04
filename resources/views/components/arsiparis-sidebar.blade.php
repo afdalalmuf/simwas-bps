@@ -36,12 +36,10 @@
                     <span>Norma Hasil</span>
                 </a>
                 <ul class="dropdown-menu">
-                    <li
-                        class="{{ Request::is('arsiparis/nh/laporan') ? 'active' : '' }}">
+                    <li class="{{ Request::is('arsiparis/nh/laporan') ? 'active' : '' }}">
                         <a class="nav-link" href="/arsiparis/nh/laporan">Laporan</a>
                     </li>
-                    <li
-                        class="{{ Request::is('arsiparis/nh/dokumen') ? 'active' : '' }}">
+                    <li class="{{ Request::is('arsiparis/nh/dokumen') ? 'active' : '' }}">
                         <a class="nav-link" href="/arsiparis/nh/dokumen">Dokumen</a>
                     </li>
                 </ul>
@@ -50,6 +48,18 @@
                 <a class="nav-link" href="/arsiparis/kendali-mutu">
                     <i class="fas fa-magnifying-glass"></i>
                     <span>Kendali Mutu</span>
+                </a>
+            </li>
+            <li class="{{ Request::is('arsiparis/kelola-arsip/index') ? 'active' : '' }}">
+                <a class="nav-link" href="{{ route('arsiparis.kelola-arsip.index') }}">
+                    <i class="fas fa-handshake"></i>
+                    <span>Kelola Arsip</span>
+                </a>
+            </li>
+            <li class="{{ Request::is('arsiparis/peminjaman-arsip/index') ? 'active' : '' }}">
+                <a class="nav-link" href="{{ route('arsiparis.peminjaman-arsip.index') }}">
+                    <i class="fas fa-file-export"></i>
+                    <span>Peminjaman Arsip</span>
                 </a>
             </li>
         </ul>
